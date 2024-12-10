@@ -1,0 +1,108 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation System</title>
+    <link rel="stylesheet" href="{% static 'recommendations/css/styles.css' %}">
+    {% load humanize %}
+</head>
+<body>
+    <div class="container">
+        <!-- About the Project Button -->
+        <button class="about-btn" onclick="showModal()">About the Project</button>
+
+        <!-- Modal Box for Project Description -->
+        <div id="about-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <h2>About the Movie Recommendation Project</h2>
+                <p>
+                    This project is a movie recommendation system based on the TMDB dataset. 
+                    It uses content-based filtering to suggest movies similar to the one you search for. 
+                    The dataset includes metadata such as genres, keywords, runtime, budget, revenue, 
+                    release dates, and more. We use cosine similarity to compute recommendations.
+                </p>
+                <p>
+                    <strong>Dataset Highlights:</strong>
+                </p>
+                <ul>
+                    <li>Total Movies: {{ stats.total_movies }}</li>
+                    <li>Average Runtime: {{ stats.avg_runtime }} mins</li>
+                    <li>Average Budget: ${{ stats.avg_budget|intcomma }}</li>
+                    <li>Average Revenue: ${{ stats.avg_revenue|intcomma }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <h1>Movie Recommendation System</h1>
+        </div>
+
+        <!-- Search Form -->
+        <div class="form-container">
+            <form method="POST">
+                {% csrf_token %}
+                <input type="text" name="movie_name" placeholder="Enter a movie name" required>
+                <button class="btn" type="submit">Get Recommendations</button>
+            </form>
+        </div>
+
+        <!-- Recommendations -->
+        {% if recommended_movies %}
+        <div class="movie-list">
+            {% for movie in recommended_movies %}
+            <!-- Form to query a new search on card click -->
+            <form method="POST" class="movie-card" action="">
+                {% csrf_token %}
+                <input type="hidden" name="movie_name" value="{{ movie.title }}">
+                <div class="movie-card-content" onclick="this.parentElement.submit();">
+                    <!-- Movie Poster -->
+                    {% if movie.poster %}
+                    <img class="movie-poster" src="{{ movie.poster }}" alt="{{ movie.title }}">
+                    {% else %}
+                    <img class="movie-poster" src="https://via.placeholder.com/200x300?text=No+Poster" alt="No Poster">
+                    {% endif %}
+
+                    <!-- Movie Info on Hover -->
+                    <div class="movie-info">
+                        <h3 class="movie-info-title">{{ movie.title }}</h3>
+                        <p><strong>Overview:</strong> {{ movie.overview|truncatewords:10 }}</p>
+                        <p><strong>Genres:</strong> {{ movie.genres }}</p>
+                        <p><strong>Rating:</strong> {{ movie.rating }}</p>
+                        <p><strong>Runtime:</strong> {{ movie.runtime }} mins</p>
+                        <p><strong>Budget:</strong> ${{ movie.budget|intcomma }}</p>
+                        <p><strong>Revenue:</strong> ${{ movie.revenue|intcomma }}</p>
+                        <p><strong>Release Date:</strong> {{ movie.release_date }}</p>
+                        <p><strong>Director:</strong> {{ movie.director }}</p>
+                    </div>
+
+                    <!-- Movie Title Below Poster -->
+                    <h3 class="movie-title">{{ movie.title }}</h3>
+                </div>
+            </form>
+            {% endfor %}
+        </div>
+        {% elif error %}
+        <div class="error">
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Show the modal
+        function showModal() {
+            document.getElementById("about-modal").style.display = "block";
+        }
+
+        // Close the modal
+        function closeModal() {
+            document.getElementById("about-modal").style.display = "none";
+        }
+    </script>
+</body>
+</html>
